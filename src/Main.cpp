@@ -26,7 +26,9 @@ void setup() {
 
   Serial.begin(115200); // Initialize serial port
 
+  Serial.setDebugOutput(true);
   Serial.printf("Setup wifi\n");
+  Serial.printf("Connected! %s\n", WiFi.localIP().toString().c_str());
   WiFi.persistent(false);
 
   WiFi.mode(WIFI_STA);
@@ -36,6 +38,7 @@ void setup() {
   int attemptsLeft = 4;
   wl_status_t status;
   while (true) {
+    Serial.printf("Connecting...\n");
     delay(4000);
     status = WiFi.status();
     attemptsLeft--;
@@ -48,14 +51,16 @@ void setup() {
       return;
     }
   }
+  Serial.printf("Done setup\n");
 
 }
 void loop() {
+  Serial.printf("Loop...n");
   wifi_station_disconnect();
   wifi_set_opmode(NULL_MODE);
   wifi_fpm_set_sleep_type(LIGHT_SLEEP_T);
   wifi_fpm_open();
   wifi_fpm_set_wakeup_cb(fpm_wakup_cb_func1); // Set wakeup callback
   wifi_fpm_do_sleep(0xFFFFFFF);
-  delay(1000);
+  delay(2000);
 }
