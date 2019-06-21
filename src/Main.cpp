@@ -22,15 +22,15 @@ void fpm_wakup_cb_func1(void)
 void setup() {
 
   // Let HW startup
-  delay(HW_STARTUP_DELAY_MSECS);
+  delay(10);
 
   Serial.begin(115200); // Initialize serial port
 
-  Serial.printf("Setup wifi");
+  Serial.printf("Setup wifi\n");
   WiFi.persistent(false);
 
   WiFi.mode(WIFI_STA);
-  delay(WIFI_DELAY_MS);
+  delay(1000);
   WiFi.begin("assid", "apassword");
 
   int attemptsLeft = 4;
@@ -40,11 +40,11 @@ void setup() {
     status = WiFi.status();
     attemptsLeft--;
     if (status == WL_CONNECTED) {
-      Serial.printf("Connected! %s", WiFi.localIP().toString().c_str());
+      Serial.printf("Connected! %s\n", WiFi.localIP().toString().c_str());
       return;
     }
     if (attemptsLeft < 0) {
-      Serial.printf("Connection failed %d",  status);
+      Serial.printf("Connection failed %d\n",  status);
       return;
     }
   }
