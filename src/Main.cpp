@@ -29,9 +29,6 @@ void setup() {
   Serial.setDebugOutput(true);
   Serial.printf("\n\nLog setup...\n");
 
-  delay(3000);
-  //WiFi.persistent(false);
-
   Serial.printf("Setup wifi\n");
 
   WiFi.mode(WIFI_STA);
@@ -59,15 +56,20 @@ void setup() {
 }
 void loop() {
   Serial.printf("Loop...n");
-  wifi_station_disconnect();
-  wifi_set_opmode(NULL_MODE);
+  //wifi_station_disconnect();
+  //wifi_set_opmode(NULL_MODE);
   wifi_fpm_set_sleep_type(LIGHT_SLEEP_T);
+  Serial.printf("LS...n");
   wifi_fpm_open();
-  wifi_fpm_set_wakeup_cb(fpm_wakup_cb_func1); // Set wakeup callback
-  //gpio_pin_wakeup_enable(GPIO_ID_PIN(0), GPIO_PIN_INTR_NEGEDGE);
-  //gpio_pin_wakeup_enable(GPIO_ID_PIN(1), GPIO_PIN_INTR_NEGEDGE);
-  //gpio_pin_wakeup_enable(GPIO_ID_PIN(2), GPIO_PIN_INTR_NEGEDGE);
-  //wifi_fpm_do_sleep(0xFFFFFFF);
+  Serial.printf("LS...n");
+  gpio_pin_wakeup_enable(GPIO_ID_PIN(0), GPIO_PIN_INTR_LOLEVEL);
+  Serial.printf("0S...n");
+  gpio_pin_wakeup_enable(GPIO0_PIN, GPIO_PIN_INTR_LOLEVEL);
+  Serial.printf("1S...n");
+  //wifi_fpm_set_wakeup_cb(fpm_wakup_cb_func1); // Set wakeup callback
   wifi_fpm_do_sleep(0xFFFFFFF); // required to go to light sleep 1mA
+  Serial.printf("2S...n");
+  wifi_fpm_close();
+  Serial.printf("3S...n");
   delay(2000); // required to go to light sleep 1mA
 }
