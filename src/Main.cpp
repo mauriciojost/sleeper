@@ -27,9 +27,12 @@ void setup() {
   Serial.begin(115200); // Initialize serial port
 
   Serial.setDebugOutput(true);
+  Serial.printf("Log setup...\n");
+
+  delay(3000);
+  //WiFi.persistent(false);
+
   Serial.printf("Setup wifi\n");
-  Serial.printf("Connected! %s\n", WiFi.localIP().toString().c_str());
-  WiFi.persistent(false);
 
   WiFi.mode(WIFI_STA);
   delay(1000);
