@@ -1,12 +1,9 @@
-/**
- * This file contains:
- * - entry point for arduino programs (setup and loop functions)
- * - declaration of HW specific functions (the definition is in a dedicated file)
- * - other functions that are not defined by HW specific but that use them, that are required by the module
- *   (so that it can be passed as callback).
- * The rest should be put in Module so that they can be tested regardless of the HW used behind.
- */
 #include <Main.h>
+
+
+#define WIFI_SSID "assid"
+#define WIFI_PASSWORD "apassword"
+
 
 extern "C" {
 #include "user_interface.h"
@@ -14,7 +11,7 @@ extern "C" {
 
 void fpm_wakup_cb_func1(void)
 {
-  Serial.printf("Wakeup...n");
+  Serial.printf("\n\nWakeup!\n\n");
   wifi_fpm_close();
   wifi_set_opmode(STATION_MODE);
   wifi_station_connect();
@@ -30,14 +27,11 @@ void setup() {
   Serial.setDebugOutput(true);
   Serial.printf("\n\nLog setup...\n");
 
-  delay(3000);
-  //WiFi.persistent(false);
-
-  Serial.printf("Setup wifi\n");
+  Serial.printf("Setup wifi...\n");
 
   WiFi.mode(WIFI_STA);
   delay(1000);
-  WiFi.begin("assid", "apassword");
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
   int attemptsLeft = 4;
   wl_status_t status;
@@ -59,7 +53,7 @@ void setup() {
 
 }
 void loop() {
-  Serial.printf("Loop...n");
+  Serial.printf("\nLoop...\n");
   wifi_station_disconnect();
   wifi_set_opmode(NULL_MODE);
   wifi_fpm_set_sleep_type(LIGHT_SLEEP_T);
@@ -68,5 +62,5 @@ void loop() {
   gpio_pin_wakeup_enable(GPIO_ID_PIN(0), GPIO_PIN_INTR_LOLEVEL);
   gpio_pin_wakeup_enable(GPIO0_PIN, GPIO_PIN_INTR_LOLEVEL);
   wifi_fpm_do_sleep(0xFFFFFFF); // required to go to light sleep 1mA
-  delay(2000); // required to go to light sleep 1mA
+  delay(1); // required to go to light sleep 1mA
 }
