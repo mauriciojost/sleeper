@@ -59,7 +59,6 @@ void loop() {
   wifi_fpm_set_sleep_type(LIGHT_SLEEP_T);
   wifi_fpm_open();
   wifi_fpm_set_wakeup_cb(fpm_wakup_cb_func1); // Set wakeup callback
-  gpio_pin_wakeup_enable(GPIO_ID_PIN(0), GPIO_PIN_INTR_LOLEVEL);
   gpio_pin_wakeup_enable(GPIO0_PIN, GPIO_PIN_INTR_LOLEVEL);
   wifi_fpm_do_sleep(0xFFFFFFF); // required to go to light sleep 1mA
   delay(1); // required to go to light sleep 1mA
