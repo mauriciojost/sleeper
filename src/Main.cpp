@@ -3,10 +3,19 @@
 
 #define WIFI_SSID "assid"
 #define WIFI_PASSWORD "apassword"
+#define WAKEUP_PIN GPIO0_PIN
 
 
 extern "C" {
 #include "user_interface.h"
+}
+
+void discharge() {
+  Serial.printf("\n\Discharging!\n\n");
+  pinMode(WAKEUP_PIN, OUTPUT); // make output
+  digitalWrite(WAKEUP_PIN, LOW); // discharge capacitor
+  delay(1000);
+  pinMode(WAKEUP_PIN, INPUT); // enable interrupt
 }
 
 void fpm_wakup_cb_func1(void)
@@ -53,13 +62,15 @@ void setup() {
 
 }
 void loop() {
+  gpio_pin_wakeup_disable();
+  discharge();
   Serial.printf("\nLoop...\n");
   wifi_station_disconnect();
   wifi_set_opmode(NULL_MODE);
   wifi_fpm_set_sleep_type(LIGHT_SLEEP_T);
   wifi_fpm_open();
   wifi_fpm_set_wakeup_cb(fpm_wakup_cb_func1); // Set wakeup callback
-  gpio_pin_wakeup_enable(GPIO0_PIN, GPIO_PIN_INTR_LOLEVEL);
+  gpio_pin_wakeup_enable(WAKEUP_PIN, GPIO_PIN_INTR_HILEVEL); // when capacitor is charged
   wifi_fpm_do_sleep(0xFFFFFFF); // required to go to light sleep 1mA
   delay(1); // required to go to light sleep 1mA
 }
