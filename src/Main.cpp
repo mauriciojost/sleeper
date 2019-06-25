@@ -1,22 +1,57 @@
 #include <Main.h>
 
-
 #define WIFI_SSID "assid"
 #define WIFI_PASSWORD "apassword"
-#define WAKEUP_PIN GPIO0_PIN
-
 
 extern "C" {
 #include "user_interface.h"
 }
 
 void discharge() {
-  Serial.printf("\n\Discharging!\n\n");
-  pinMode(WAKEUP_PIN, OUTPUT); // make output
-  digitalWrite(WAKEUP_PIN, LOW); // discharge capacitor
-  delay(1000);
-  pinMode(WAKEUP_PIN, INPUT); // enable interrupt
+  // loop to discharge C1 until it is actually discharged
+  while(true) {
+    Serial.printf("Discharging!\n");
+    pinMode(WAKEUP_PIN, OUTPUT); // make output
+    digitalWrite(WAKEUP_PIN, LOW); // discharge capacitor
+    delay(10);
+    pinMode(WAKEUP_PIN, INPUT); // prepare for reading
+    delay(1);
+    if (digitalRead(WAKEUP_PIN) == LOW) { // do it until C1 discharged
+    	break;
+    }
+  }
+  Serial.printf("Done discharging! (was low)\n");
+  delay(10);
 }
+
+
+
+/**
+ *   3.3V
+ *  --+--
+ *    |
+ *   [R2]
+ *    |                    R2=100k
+ *    +------- WAKEUP_PIN  C1=100uF
+ *    |                    R1=470
+ *   [C1]                  t = (R1 + R2) * C1 ~= R2*C1 = 10000msec = 10sec
+ *    |
+ *   [R1]
+ *    |
+ *   -+- GND
+ *    -
+ *
+ * Explanation:
+ * When WAKEUP_PIN is in mode OUTPUT and set to logic low (~0v)
+ * C1 discharges quickly through R1 (current must be < 12mA max allowed per GPIO).
+ * Once C1 is discharged, WAKEUP_PIN is set to INPUT mode. C1 slowly charges through
+ * R1 + R2. WAKEUP_PIN voltage goes slowly high until it makes an GPIO interrupt.
+ *
+ * Notes:
+ * If C1 charged => WAKEUP_PIN is HIGH.
+ * If C1 dischgd => WAKEUP_PIN is LOW (no voltage drop in C1) .
+ * WAKEUP_PIN set to LOW to discharge C1 (and WAKEUP_PIN keeps LOW).
+ */
 
 void fpm_wakup_cb_func1(void)
 {
@@ -33,7 +68,7 @@ void setup() {
 
   Serial.begin(115200); // Initialize serial port
 
-  Serial.setDebugOutput(true);
+  //Serial.setDebugOutput(true);
   Serial.printf("\n\nLog setup...\n");
 
   Serial.printf("Setup wifi...\n");
@@ -42,10 +77,10 @@ void setup() {
   delay(1000);
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
-  int attemptsLeft = 4;
+  int attemptsLeft = 10;
   wl_status_t status;
   while (true) {
-    Serial.printf("Connecting...\n");
+    Serial.printf(".");
     delay(4000);
     status = WiFi.status();
     attemptsLeft--;
@@ -58,19 +93,21 @@ void setup() {
       return;
     }
   }
-  Serial.printf("Done setup\n");
 
 }
 void loop() {
-  gpio_pin_wakeup_disable();
-  discharge();
   Serial.printf("\nLoop...\n");
+
+  gpio_pin_wakeup_disable();
+  wifi_fpm_set_sleep_type(NONE_SLEEP_T);
+  discharge();
   wifi_station_disconnect();
+
   wifi_set_opmode(NULL_MODE);
   wifi_fpm_set_sleep_type(LIGHT_SLEEP_T);
   wifi_fpm_open();
   wifi_fpm_set_wakeup_cb(fpm_wakup_cb_func1); // Set wakeup callback
-  gpio_pin_wakeup_enable(WAKEUP_PIN, GPIO_PIN_INTR_HILEVEL); // when capacitor is charged
+  gpio_pin_wakeup_enable(WAKEUP_PIN, WAKEUP_PIN_STATE); // when capacitor is charged
   wifi_fpm_do_sleep(0xFFFFFFF); // required to go to light sleep 1mA
   delay(1); // required to go to light sleep 1mA
 }
